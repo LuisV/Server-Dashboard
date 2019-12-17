@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script src="JS/websocket.js"></script>
+    <link rel="stylesheet" type="text/css" href="CSS/style.css">
+</head>
+<body>
+
+<div id="wrapper">
+    <h1>Home</h1>
+     <br />
+
+    <br />
+    <h3>Currently connected devices:</h3>
+</div>
+
+<div th:if="${#lists.isEmpty(links)}">
+    No connected clients.
+</div>
+<div th:if="!${#lists.isEmpty(links)}">
+<table border="1" th:each ="conn : ${links}">
+
+    <tr><td colspan="2" th:utext="${conn.getRegistration().getEndpoint()}">...</td>
+
+    </tr>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+    </tr>
+    <tr th:each ="model : ${conn.getModel().getObjectModels()}">
+        <td th:utext="${model.id}">...</td>
+        <td th:utext="${model.name}">...</td>
+
+    </tr>
+</table>
+</div>
+</body>
+</html>
