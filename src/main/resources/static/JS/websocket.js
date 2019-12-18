@@ -1,6 +1,6 @@
 
 window.onload = init;
-var socket = new WebSocket("ws://localhost:8080/actions");
+var socket = new WebSocket("ws://18.191.44.190:8080/dashboard/actions");
 socket.onmessage = onMessage;
 
 function onMessage(event) {
