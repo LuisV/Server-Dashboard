@@ -18,4 +18,16 @@ public class UpdateEvent extends ApplicationEvent {
         this.registration = registration;
         this.response = response;
     }
+
+    public Observation getObservation() {
+        return observation;
+    }
+
+    public Registration getRegistration() {
+        return registration;
+    }
+
+    public ObserveResponse getResponse() {
+        return response;
+    }
 }

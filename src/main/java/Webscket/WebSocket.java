@@ -2,8 +2,10 @@ package Webscket;
 
 import LWM2MServer.Lwm2mServer;
 import Objects.ConnectionEvent;
+import Objects.UpdateEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
@@ -24,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 @Component
-public class WebSocket extends TextWebSocketHandler implements ApplicationListener<ConnectionEvent> {
+public class WebSocket extends TextWebSocketHandler implements ApplicationListener<ApplicationEvent> {
 
 
     private Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
@@ -69,8 +71,17 @@ public class WebSocket extends TextWebSocketHandler implements ApplicationListen
     }
 
     @Override
-    public void onApplicationEvent(ConnectionEvent event) {
+    public void onApplicationEvent(ApplicationEvent event) {
         System.out.println(event);
-        this.sendMessageToAll(event.getEventType()+ event.getMessage());
+        if (event instanceof ConnectionEvent) {
+
+            this.sendMessageToAll(event.toString());
+        }
+        else if (event instanceof UpdateEvent) {
+            this.sendMessageToAll(event.toString());
+
+        }
+
+
     }
 }
