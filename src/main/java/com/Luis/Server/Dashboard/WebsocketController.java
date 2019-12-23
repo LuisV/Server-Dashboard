@@ -19,4 +19,6 @@ public class WebsocketController implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
         webSocketHandlerRegistry.addHandler(websocketHandler, "/actions").setAllowedOrigins("*");
     }
+
+
 }

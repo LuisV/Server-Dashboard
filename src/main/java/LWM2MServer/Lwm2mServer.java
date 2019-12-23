@@ -1,6 +1,7 @@
 package LWM2MServer;
 import Objects.ConnectionEvent;
 import Objects.ObjectModelSerDes;
+import Objects.ReadEvent;
 import Objects.UpdateEvent;
 import Webscket.WebSocket;
 import org.eclipse.californium.core.network.EndpointContextMatcherFactory.MatcherMode;
@@ -10,11 +11,12 @@ import org.eclipse.leshan.Link;
 import org.eclipse.leshan.core.model.LwM2mModel;
 import org.eclipse.leshan.core.model.ObjectLoader;
 import org.eclipse.leshan.core.model.ObjectModel;
-import org.eclipse.leshan.core.node.LwM2mResource;
+import org.eclipse.leshan.core.node.*;
 import org.eclipse.leshan.core.node.codec.DefaultLwM2mNodeEncoder;
 import org.eclipse.leshan.core.observation.Observation;
 import org.eclipse.leshan.core.request.ObserveRequest;
 import org.eclipse.leshan.core.request.ReadRequest;
+import org.eclipse.leshan.core.response.LwM2mResponse;
 import org.eclipse.leshan.core.response.ObserveResponse;
 import org.eclipse.leshan.core.response.ReadResponse;
 import org.eclipse.leshan.server.californium.LeshanServerBuilder;
@@ -122,6 +124,20 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                         // Make the Observe request here
                         ObserveRequest request = new ObserveRequest(3303, 0, 5700);
                         server.send(registration, request, 5000);
+                        try {
+                            ReadResponse response = server.send(registration, new ReadRequest(6));
+                            LwM2mObject obj = (LwM2mObject) response.getContent();
+
+                            if (response.isSuccess()) {
+                                System.out.println((obj.getInstances().values()));
+                                publisher.publishEvent(new ReadEvent(this,registration, response));
+                            }else {
+                                System.out.println("Failed to read:" + response.getCode() + " " + response.getErrorMessage());
+                            }
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
 
                     } catch (InterruptedException e) {
                         e.printStackTrace();

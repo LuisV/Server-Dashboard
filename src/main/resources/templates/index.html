@@ -26,12 +26,20 @@
     <br />
     <h3>Currently connected devices:</h3>
 </div>
+<div style="height: 300px">
+    Current location:
+    <strong><span th:utext="${lon}">...</span> <span th:utext="${lat}">...</span> </strong>
 <canvas id="myChart" width="100" height="100"></canvas>
+
+    <!--<iframe width="600" height="450" frameborder="0" style="border:0" src="https://www.google.com/maps/embed/v1/place?q=33.081188%2C%20-96.841103&key=AIzaSyDkqaaMLJyB9A2cPG5AN379l4JUy3YjIPI" allowfullscreen></iframe>
+-->
+</div>
 
 <div th:if="${#maps.isEmpty(links)}">
     No connected clients.
 </div>
 <div th:if="!${#maps.isEmpty(links)}">
+    Supported Objets for device
 <table border="1" th:each ="conn : ${links}">
 
     <tr><td colspan="2" th:utext="${conn.value.getRegistration().getEndpoint()}">...</td>
