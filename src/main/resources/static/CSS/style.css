@@ -5,11 +5,32 @@ body {
     color:black;
 }
 
+.hidden {
+    display: none
+}
+.active {
+    display: block;
+}
+#menu a:hover{
+    color: gray;
+}
 #wrapper {
-    width: 960px;
+
     margin: auto;
     text-align: left;
     color: black;
+    height:100%;
+    width: 100%;
+    position:fixed!important;
+}
+#menu {
+    height:100%;
+    width:200px;
+    background-color:#fff;
+    position:fixed!important;
+    z-index:1;
+    overflow:auto;
+    padding-left: 15px;
 }
 
 p {
@@ -37,7 +58,7 @@ p {
     background-color: #ffb15e;
 }
 .button a, a:visited, a:hover, a:active {
-    color: #fff;
+    color: black;
     text-decoration: none;
 }
 
@@ -139,3 +160,4 @@ p {
 .device a:hover {
     text-decoration: underline;
 }
+

@@ -1,8 +1,11 @@
 package Webscket;
 
+import LWM2MServer.ClientData;
 import LWM2MServer.Lwm2mServer;
+import com.Luis.Server.Dashboard.HomeController;
 import Objects.ConnectionEvent;
 import Objects.UpdateEvent;
+import com.eclipsesource.json.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import org.springframework.context.ApplicationEvent;
@@ -17,12 +20,12 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-
 import java.io.IOException;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @Component
@@ -55,8 +58,27 @@ public class WebSocket extends TextWebSocketHandler implements ApplicationListen
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
-        System.out.println("Handling message: {}" + message);
-    }
+        JsonObject j = Json.parse(message.getPayload()).asObject();
+
+         if("DeviceUpdate".equals(j.getString("action", "none"))){
+
+
+
+
+                Lwm2mServer.getDeviceInfo(j.getString("endpoint", ""));
+                JsonObject result = new JsonObject();
+
+                ClientData client = HomeController.events.get(j.getString("endpoint",""));
+                if(client != null){
+                    result.add("device", j.getString("endpoint","") );
+                    result.add("lat",client.getLat());
+                    result.add("lon", client.getLon());
+                    result.add("batteryLevel", client.getBatteryLevel());
+                    result.add("batteryStatus", client.getBatteryStatus());
+                    sendMessageToAll(result.toString());
+                }
+                }
+            }
 
     private void sendMessageToAll(String message) {
         TextMessage textMessage = new TextMessage(message);
@@ -75,10 +97,27 @@ public class WebSocket extends TextWebSocketHandler implements ApplicationListen
         System.out.println(event);
         if (event instanceof ConnectionEvent) {
 
-            this.sendMessageToAll(event.toString());
+            JsonObject p = new JsonObject();
+            p.add("newDevice", ((ConnectionEvent) event).getRegistration().getEndpoint());
+            p.add("device", ((ConnectionEvent) event).getRegistration().getEndpoint() );
+            this.sendMessageToAll(p.toString());
         }
         else if (event instanceof UpdateEvent) {
-            this.sendMessageToAll(event.toString());
+           String data= (((UpdateEvent) event).getResponse().getContent().toString());
+
+            Pattern pattern = Pattern.compile("value=(.*?),");
+            Matcher matcher = pattern.matcher(data);
+            Double chicken = 0.0;
+            if (matcher.find())
+            {
+                chicken = Double.parseDouble(matcher.group(1));
+
+            }
+            JsonObject j = new JsonObject();
+            j.add("tempUpdate", chicken);
+            j.add("device", ((UpdateEvent) event).getRegistration().getEndpoint() );
+            this.sendMessageToAll(j.toString());
+
 
         }
 

@@ -1,20 +1,31 @@
-var ctx = document.getElementById('myChart').getContext('2d');
-var tim = new Date();
-var myChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-    //     labels: function(context){
-    //       return Math.round((new Date()- tim)/1000);
-    //     },
-        datasets: [{label: 'Temperarture',
-            data: tempArr,
-            fill:false,
-            lineTension: 0.8
-        }]
-
+var chart1 = Highcharts.chart('chartContainer',{
+    chart: {
+        renderTo: 'container',
+        type: 'line'
     },
- options: {
-     maintainAspectRatio: false
- }
+    title: {
+        text: 'Current Temperature'
+    },
+    xAxis: {
+        type:'linear',
+        tickInterval: 1
+    },
+    yAxis: {
+        title: {
+            text: 'Degrees Celsius'
+        },
+        labels:{
+            formatter: function(){
+                return this.value + "°C"
+            }
+        },
+        min: 0,
+        max: 100
+    },
+    series: [{
+        name: 'Temperature',
+        data: tempArr
+    }]
+
 
 });

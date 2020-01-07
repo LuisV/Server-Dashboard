@@ -31,6 +31,7 @@ public class ObjectModelSerDes extends JsonSerDes<ObjectModel> {
 
     ResourceModelSerDes resourceModelSerDes = new ResourceModelSerDes();
 
+
     @Override
     public JsonObject jSerialize(ObjectModel m) {
         final JsonObject o = Json.object();

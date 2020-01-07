@@ -1,5 +1,6 @@
 package com.Luis.Server.Dashboard;
 
+import LWM2MServer.ClientData;
 import Objects.ConnectionEvent;
 import Objects.UpdateEvent;
 import Objects.ReadEvent;
@@ -24,58 +25,64 @@ import org.eclipse.leshan.server.model.LwM2mModelProvider;
 public class HomeController implements ApplicationListener<ApplicationEvent>  {
 
 
-    public String message = "Hell FROM THYME!";
-    public static Map<String,ConnectionEvent> events = new HashMap<>();
-    public static ArrayList<Double> temp = new ArrayList<Double>();
-    double lat;
-    double lon;
-    private String errorMessage;
-
+    // Container for Client data mapped to their endpoint names
+    public static Map<String, ClientData> events = new HashMap<>();
     @RequestMapping("/")
     public String viewHome(Model model) {
-        model.addAttribute("message", message);
+
+        // Thymeleaf mode attribute
         model.addAttribute("links", events);
-        model.addAttribute("tempArr", temp);
-        model.addAttribute("lat", lat);
-        model.addAttribute("lon", lon);
-        //String a = events.get(0).getModel().getObjectModels();
+
         return "index";
     }
 
+    // Listener for events, these events are implemented in com.Objects
     @Override
     public void onApplicationEvent(ApplicationEvent event) {
 
         if (event instanceof ConnectionEvent) {
-
-            events.put(((ConnectionEvent) event).getRegistration().getEndpoint(), ((ConnectionEvent) event));
+            // New Client Connection
+            events.put(((ConnectionEvent) event).getRegistration().getEndpoint(), new ClientData ((ConnectionEvent) event));
         }
         else if (event instanceof UpdateEvent) {
-            System.out.println(((UpdateEvent) event).getResponse().getCoapResponse());
+
+            // New response to an observe request
+            // Note = There must be a better way to do this
+            // but this method works...
             String data= (((UpdateEvent) event).getResponse().getContent().toString());
-            System.out.println(data);
             Pattern pattern = Pattern.compile("value=(.*?),");
             Matcher matcher = pattern.matcher(data);
 
             if (matcher.find())
             {
-                System.out.println(matcher.group(1));
-               Double chicken = Double.parseDouble(matcher.group(1));
-               if(temp.size() < 20)
-                    temp.add(chicken);
-               else {
-                   temp.remove(0);
-                  temp.add(chicken);
-               }
-               //System.out.println(chicken);
+
+               Double num = Double.parseDouble(matcher.group(1));
+                // Add to Temperature array in the events container
+               events.get(((UpdateEvent) event).getRegistration().getEndpoint()).addToTempArray(num);
             }
-            //temp.add(Double.parseDouble(((UpdateEvent) event).getResponse().getContent().accept();));
-            System.out.println("NFRJKH");
         }
-        else if (event instanceof ReadEvent){
-            System.out.println("CHICKEN");
-            ArrayList<LwM2mObjectInstance> te = new ArrayList<LwM2mObjectInstance> (((ReadEvent)event).getValues());
-            lat = (Double) te.get(0).getResources().get(0).getValue();
-            lon = (Double) te.get(0).getResources().get(1).getValue();
+        else if (event instanceof ReadEvent) {
+           // New response to a read request
+            ArrayList<LwM2mObjectInstance> te = new ArrayList<LwM2mObjectInstance>(((ReadEvent) event).getValues());
+
+            // There must be a better way to differentiate between requests
+            // I simply used the size of the data
+            if (te.get(0).getResources().size() == 16) {
+                events.get(((ReadEvent) event).getRegistration().getEndpoint()).setBatteryLevel ((Long) te.get(0).getResources().get(9).getValue());
+                String batteryStatus="";
+               switch(Math.toIntExact((long) te.get(0).getResources().get(20).getValue()))
+               {
+                   case 0: {batteryStatus = "Normal"; break;}
+                   case 1: {batteryStatus ="Charging"; break;}
+                   case 2: {batteryStatus ="Charge Complete"; break;}
+                   case 4: {batteryStatus = "Low Battery!"; break;}
+               }
+
+                events.get(((ReadEvent) event).getRegistration().getEndpoint()).setBatteryStatus (batteryStatus);
+            } else {
+                events.get(((ReadEvent) event).getRegistration().getEndpoint()).setLat ((Double) te.get(0).getResources().get(0).getValue());
+                events.get(((ReadEvent) event).getRegistration().getEndpoint()).setLon ( (Double) te.get(0).getResources().get(1).getValue());
+            }
         }
 
     }

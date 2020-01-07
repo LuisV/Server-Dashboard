@@ -38,15 +38,17 @@ import java.util.List;
 
 import org.eclipse.leshan.server.model.VersionedModelProvider;
 
+import javax.annotation.PreDestroy;
+
 @Component
 public class Lwm2mServer implements ApplicationEventPublisherAware{
 
 
-    ApplicationEventPublisher publisher;
-    private final ObjectModelSerDes serializer;
-    private RegistrationService ser;
-    private final LwM2mModelProvider modelProvider;
-
+    static ApplicationEventPublisher publisher;
+    private static ObjectModelSerDes serializer;
+    private static RegistrationService ser;
+    private static LwM2mModelProvider modelProvider;
+    static LeshanServer server;
     private final static String[] modelPaths = new String[] { "31024.xml",
 
             "10241.xml", "10242.xml", "10243.xml", "10244.xml", "10245.xml", "10246.xml", "10247.xml",
@@ -79,6 +81,42 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
         this.publisher = applicationEventPublisher;
     }
 
+    public static void getDeviceInfo(String endpoint){
+        Registration registration = ser.getByEndpoint(endpoint);
+            if(registration==null){
+                return;
+            }
+          ClientData result= new ClientData(null);
+            try {
+                ReadResponse response = server.send(registration, new ReadRequest(6));
+                LwM2mObject obj = (LwM2mObject) response.getContent();
+
+                if (response.isSuccess()) {
+                    System.out.println((obj.getInstances().values()));
+                    publisher.publishEvent(new ReadEvent(Lwm2mServer.class,registration, response));
+
+                }else {
+                    System.out.println("Failed to read:" + response.getCode() + " " + response.getErrorMessage());
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                ReadResponse response = server.send(registration, new ReadRequest(3));
+                LwM2mObject obj = (LwM2mObject) response.getContent();
+
+                if (response.isSuccess()) {
+                    System.out.println((obj.getInstances().values()));
+                    publisher.publishEvent(new ReadEvent(Lwm2mServer.class,registration, response));
+                }else {
+                    System.out.println("Failed to read:" + response.getCode() + " " + response.getErrorMessage());
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+    }
         public Lwm2mServer() {
             List<ObjectModel> models = ObjectLoader.loadDefault();
 
@@ -94,7 +132,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
 
             serializer = new ObjectModelSerDes();
 
-            final LeshanServer server = builder.build();
+             server = builder.build();
 
             modelProvider = server.getModelProvider();
             ser = server.getRegistrationService();
@@ -106,50 +144,23 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                 public void registered(Registration registration, Registration previousReg,
                                        Collection<Observation> previousObsersations) {
                     System.out.println("new device: " + registration.getEndpoint());
-                    String temp="";
                     LwM2mModel model = modelProvider.getObjectModel(registration);
 
-                    System.out.println(new String(serializer.bSerialize(model.getObjectModels())));
-                    try {
-                        //System.out.println("Supported Devices: ");
-//                        for ( ObjectModel l: modelProvider.getObjectModel(registration).getObjectModels()
-//                                ) {
-//                            System.out.println(l);
-//                            System.out.println(" ");
-//                            temp+=l;
-//                            temp+="\n";
-//                        }
 
-                        publisher.publishEvent(new ConnectionEvent(this, "Register", new String(serializer.bSerialize(model.getObjectModels())), registration, model));
-                        // Make the Observe request here
+                    //System.out.println(new String(serializer.bSerialize(model.getObjectModels())));
+                    publisher.publishEvent(new ConnectionEvent(Lwm2mServer.class, "Register", new String(serializer.bSerialize(model.getObjectModels())), registration, model));
+                    try {
                         ObserveRequest request = new ObserveRequest(3303, 0, 5700);
                         server.send(registration, request, 5000);
-                        try {
-                            ReadResponse response = server.send(registration, new ReadRequest(6));
-                            LwM2mObject obj = (LwM2mObject) response.getContent();
-
-                            if (response.isSuccess()) {
-                                System.out.println((obj.getInstances().values()));
-                                publisher.publishEvent(new ReadEvent(this,registration, response));
-                            }else {
-                                System.out.println("Failed to read:" + response.getCode() + " " + response.getErrorMessage());
-                            }
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                    getDeviceInfo(registration.getEndpoint());
                 }
 
                 public void updated(RegistrationUpdate update, Registration updatedReg, Registration previousReg) {
                     System.out.println("device is still here: " + updatedReg.getEndpoint());
-                  //  LwM2mModel model = modelProvider.getObjectModel(ser.getByEndpoint("endpoint me test"));
-                    //update.
-                   // System.out.println(new String(serializer.bSerialize(model.getObjectModels())));
-
+                    getDeviceInfo(updatedReg.getEndpoint());
                 }
 
                 public void unregistered(Registration registration, Collection<Observation> observations, boolean expired,
@@ -186,9 +197,12 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                 }
             });
             server.start();
+
         }
-
-
+        @PreDestroy
+        public void destroy() throws Exception {
+            server.destroy();
+        }
 }
 
 
