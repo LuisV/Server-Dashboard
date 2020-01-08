@@ -166,6 +166,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                     //System.out.println(new String(serializer.bSerialize(model.getObjectModels())));
                     publisher.publishEvent(new ConnectionEvent(Lwm2mServer.class, "Register", new String(serializer.bSerialize(model.getObjectModels())), registration, model));
                     try {
+                        System.out.println("\n\n IN HERE \n\n");
                         ObserveRequest request = new ObserveRequest(3303, 0, 5700);
                         server.send(registration, request, 5000);
                     } catch (InterruptedException e) {
