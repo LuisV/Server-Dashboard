@@ -16,9 +16,7 @@ import org.eclipse.leshan.core.node.codec.DefaultLwM2mNodeEncoder;
 import org.eclipse.leshan.core.observation.Observation;
 import org.eclipse.leshan.core.request.ObserveRequest;
 import org.eclipse.leshan.core.request.ReadRequest;
-import org.eclipse.leshan.core.response.LwM2mResponse;
-import org.eclipse.leshan.core.response.ObserveResponse;
-import org.eclipse.leshan.core.response.ReadResponse;
+import org.eclipse.leshan.core.response.*;
 import org.eclipse.leshan.server.californium.LeshanServerBuilder;
 import org.eclipse.leshan.server.californium.impl.LeshanServer;
 import org.eclipse.leshan.server.model.LwM2mModelProvider;
@@ -78,7 +76,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
     @Override
     public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
         System.out.println("publisher: " + applicationEventPublisher);
-        this.publisher = applicationEventPublisher;
+        publisher = applicationEventPublisher;
     }
 
     public static void getDeviceInfo(String endpoint){
@@ -87,37 +85,54 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                 return;
             }
           ClientData result= new ClientData(null);
-            try {
-                ReadResponse response = server.send(registration, new ReadRequest(6), 1000);
+                server.send(registration, new ReadRequest(6), 1000, new ResponseCallback<ReadResponse>() {
+                    @Override
+                    public void onResponse(ReadResponse response) {
+                        if (response.isSuccess()) {
+                            LwM2mObject obj = (LwM2mObject) response.getContent();
+                            System.out.println((obj.getInstances().values()));
+                            publisher.publishEvent(new ReadEvent(Lwm2mServer.class, registration, response));
+
+                        } else {
+                            System.out.println("Failed to read:" + response.getCode() + " " + response.getErrorMessage());
+                        }
+                    }
+
+                    ;
+                }, new ErrorCallback() {
+
+                    @Override
+                    public void onError(Exception e) {
+                        System.out.println("Failed to read:");
+                        e.printStackTrace();
+                    }
+                });
 
 
-                if (response.isSuccess()) {
-                    LwM2mObject obj = (LwM2mObject) response.getContent();
-                    System.out.println((obj.getInstances().values()));
-                    publisher.publishEvent(new ReadEvent(Lwm2mServer.class,registration, response));
+                    server.send(registration, new ReadRequest(3), 1000, new ResponseCallback<ReadResponse>() {
+                        @Override
+                        public void onResponse(ReadResponse response) {
+                            LwM2mObject obj = (LwM2mObject) response.getContent();
 
-                }else {
-                    System.out.println("Failed to read:" + response.getCode() + " " + response.getErrorMessage());
+                            if (response.isSuccess()) {
+                                System.out.println((obj.getInstances().values()));
+                                publisher.publishEvent(new ReadEvent(Lwm2mServer.class, registration, response));
+                            } else {
+                                System.out.println("Failed to read:" + response.getCode() + " " + response.getErrorMessage());
+                            }
+                        }
+
+                        ;
+                    }, new ErrorCallback() {
+
+                        @Override
+                        public void onError(Exception e) {
+                            System.out.println("Failed to read:");
+                            e.printStackTrace();
+                        }
+                    });
+
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            try {
-                ReadResponse response = server.send(registration, new ReadRequest(3), 1000);
-                LwM2mObject obj = (LwM2mObject) response.getContent();
-
-                if (response.isSuccess()) {
-                    System.out.println((obj.getInstances().values()));
-                    publisher.publishEvent(new ReadEvent(Lwm2mServer.class,registration, response));
-                }else {
-                    System.out.println("Failed to read:" + response.getCode() + " " + response.getErrorMessage());
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-    }
         public Lwm2mServer() {
             List<ObjectModel> models = ObjectLoader.loadDefault();
 
