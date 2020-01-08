@@ -17,6 +17,7 @@
 
 	<properties>
 		<java.version>9</java.version>
+
 	</properties>
 
 
@@ -114,6 +115,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
+		<finalName>Dashboard</finalName>
 	</build>
 
 </project>
