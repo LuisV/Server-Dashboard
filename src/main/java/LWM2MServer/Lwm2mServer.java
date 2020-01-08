@@ -155,39 +155,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
 
 
             // Registration Listener for new devices
-            server.getRegistrationService().addListener(new RegistrationListener() {
-
-                public void registered(Registration registration, Registration previousReg,
-                                       Collection<Observation> previousObsersations) {
-                    System.out.println("new device: " + registration.getEndpoint());
-                    LwM2mModel model = modelProvider.getObjectModel(registration);
-
-
-                    //System.out.println(new String(serializer.bSerialize(model.getObjectModels())));
-                    publisher.publishEvent(new ConnectionEvent(Lwm2mServer.class, "Register", new String(serializer.bSerialize(model.getObjectModels())), registration, model));
-                    try {
-                        System.out.println("\n\n IN HERE \n\n");
-                        ObserveRequest request = new ObserveRequest(3303, 0, 5700);
-                        server.send(registration, request, 5000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    getDeviceInfo(registration.getEndpoint());
-                }
-
-                public void updated(RegistrationUpdate update, Registration updatedReg, Registration previousReg) {
-                    System.out.println("device is still here: " + updatedReg.getEndpoint());
-                    getDeviceInfo(updatedReg.getEndpoint());
-                }
-
-                public void unregistered(Registration registration, Collection<Observation> observations, boolean expired,
-                                         Registration newReg) {
-                    System.out.println("device left: " + registration.getEndpoint());
-                }
-            });
-
-
-            //// Observation listener
+            // Observation listener
             server.getObservationService().addListener(new ObservationListener() {
                 @Override
                 public void newObservation(Observation observation, Registration registration) {
@@ -213,6 +181,49 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                     System.out.println(error);
                 }
             });
+
+            server.getRegistrationService().addListener(new RegistrationListener() {
+
+                public void registered(Registration registration, Registration previousReg,
+                                       Collection<Observation> previousObsersations) {
+                    System.out.println("new device: " + registration.getEndpoint());
+                    LwM2mModel model = modelProvider.getObjectModel(registration);
+
+
+                    //System.out.println(new String(serializer.bSerialize(model.getObjectModels())));
+                    publisher.publishEvent(new ConnectionEvent(Lwm2mServer.class, "Register", new String(serializer.bSerialize(model.getObjectModels())), registration, model));
+                        System.out.println("\n\n IN HERE \n\n");
+                        ObserveRequest request = new ObserveRequest(3303, 0, 5700);
+
+                        server.send(registration, request, 5000, new ResponseCallback<ObserveResponse>() {
+                            @Override
+                            public void onResponse(ObserveResponse response) {
+                                    publisher.publishEvent(new UpdateEvent(this, response.getObservation(),registration,response));
+                            }
+                        }, new ErrorCallback() {
+
+                            @Override
+                            public void onError(Exception e) {
+                                System.out.println("Failed to read:");
+                                e.printStackTrace();
+                            }
+                        });
+                    getDeviceInfo(registration.getEndpoint());
+                }
+
+                public void updated(RegistrationUpdate update, Registration updatedReg, Registration previousReg) {
+                    System.out.println("device is still here: " + updatedReg.getEndpoint());
+                    getDeviceInfo(updatedReg.getEndpoint());
+                }
+
+                public void unregistered(Registration registration, Collection<Observation> observations, boolean expired,
+                                         Registration newReg) {
+                    System.out.println("device left: " + registration.getEndpoint());
+                }
+            });
+
+
+
             server.start();
 
         }
