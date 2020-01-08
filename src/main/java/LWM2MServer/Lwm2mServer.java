@@ -88,7 +88,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
             }
           ClientData result= new ClientData(null);
             try {
-                ReadResponse response = server.send(registration, new ReadRequest(6));
+                ReadResponse response = server.send(registration, new ReadRequest(6), 1000);
 
 
                 if (response.isSuccess()) {
@@ -104,7 +104,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
             }
 
             try {
-                ReadResponse response = server.send(registration, new ReadRequest(3));
+                ReadResponse response = server.send(registration, new ReadRequest(3), 1000);
                 LwM2mObject obj = (LwM2mObject) response.getContent();
 
                 if (response.isSuccess()) {
