@@ -89,9 +89,10 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
           ClientData result= new ClientData(null);
             try {
                 ReadResponse response = server.send(registration, new ReadRequest(6));
-                LwM2mObject obj = (LwM2mObject) response.getContent();
+
 
                 if (response.isSuccess()) {
+                    LwM2mObject obj = (LwM2mObject) response.getContent();
                     System.out.println((obj.getInstances().values()));
                     publisher.publishEvent(new ReadEvent(Lwm2mServer.class,registration, response));
 
