@@ -84,7 +84,8 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
             if(registration==null){
                 return;
             }
-        System.out.println("\n\n\n"+registration.getAddress()+"\n\n");
+        System.out.println(System.getenv("apiKey"));
+        System.out.println("\n\n\n"+registration.getAddress().getHostAddress()+"\n\n");
           ClientData result= new ClientData(null);
                 server.send(registration, new ReadRequest(6), 1000, new ResponseCallback<ReadResponse>() {
                     @Override
