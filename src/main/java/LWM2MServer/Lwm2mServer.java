@@ -4,8 +4,6 @@ import Objects.ObjectModelSerDes;
 import Objects.ReadEvent;
 import Objects.UpdateEvent;
 import Webscket.WebSocket;
-
-import java.net.http.HttpClient;
 import org.eclipse.californium.core.network.EndpointContextMatcherFactory.MatcherMode;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 
