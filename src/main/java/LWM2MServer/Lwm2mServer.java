@@ -4,6 +4,10 @@ import Objects.ObjectModelSerDes;
 import Objects.ReadEvent;
 import Objects.UpdateEvent;
 import Webscket.WebSocket;
+
+import jdk.incubator.http.HttpClient;
+import jdk.incubator.http.HttpRequest;
+import jdk.incubator.http.HttpResponse;
 import org.eclipse.californium.core.network.EndpointContextMatcherFactory.MatcherMode;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 
@@ -31,6 +35,10 @@ import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.*;
 import org.springframework.context.*;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.List;
 
@@ -85,6 +93,16 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                 return;
             }
         System.out.println(System.getenv("APIKEY"));
+        HttpClient client = HttpClient.newHttpClient();
+        try {
+            HttpRequest request = HttpRequest.newBuilder().uri(new URI("http://api.ipinfodb.com/v3/ip-city/?key=594300d16f6816d07e7de144a366caf0d64276db7ece09e3c72e12f785f269e5&ip="+ registration.getAddress().getHostAddress())).build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandler.asString());
+            System.out.println(response.body());
+        } catch (URISyntaxException | InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
+
+
         System.out.println("\n\n\n"+registration.getAddress().getHostAddress()+"\n\n");
           ClientData result= new ClientData(null);
                 server.send(registration, new ReadRequest(6), 1000, new ResponseCallback<ReadResponse>() {
