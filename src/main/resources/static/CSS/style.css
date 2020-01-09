@@ -21,7 +21,7 @@ body {
     color: black;
     height:100%;
     width: 100%;
-    position:fixed!important;
+    padding: 1px;
 }
 #menu {
     height:100%;
