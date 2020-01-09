@@ -103,8 +103,11 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
         }
 
 
+
         System.out.println("\n\n\n"+registration.getAddress().getHostAddress()+"\n\n");
           ClientData result= new ClientData(null);
+          result.setIp(registration.getAddress().getHostAddress());
+          result.setHostname(registration.getAddress().getHostName());
                 server.send(registration, new ReadRequest(6), 1000, new ResponseCallback<ReadResponse>() {
                     @Override
                     public void onResponse(ReadResponse response) {

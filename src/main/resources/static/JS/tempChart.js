@@ -4,7 +4,7 @@ var chart1 = Highcharts.chart('chartContainer',{
         type: 'line'
     },
     title: {
-        text: 'Current Temperature'
+        text: 'Operating Temperature'
     },
     xAxis: {
         type:'linear',

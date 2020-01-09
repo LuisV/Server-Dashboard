@@ -10,12 +10,22 @@ public class ClientData {
     private ConnectionEvent connection;
     double lat;
     double lon;
+    String ip;
+    String hostname;
     private String batteryStatus;
     private Long batteryLevel;
     private  ArrayList<Double> temp = new ArrayList<Double>();
 
     public ClientData(ConnectionEvent connection) {
         this.connection = connection;
+    }
+
+    public String getHostname() {
+        return hostname;
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
     }
 
     public String getEndPoint() {
@@ -80,6 +90,14 @@ public class ClientData {
 
     public void setTemp(ArrayList<Double> temp) {
         this.temp = temp;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
     }
 
     @Override
