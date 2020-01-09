@@ -108,7 +108,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
           ClientData result= new ClientData(null);
           result.setIp(registration.getAddress().getHostAddress());
           result.setHostname(registration.getAddress().getHostName());
-                server.send(registration, new ReadRequest(6), 1000, new ResponseCallback<ReadResponse>() {
+                server.send(registration, new ReadRequest(6), 9000, new ResponseCallback<ReadResponse>() {
                     @Override
                     public void onResponse(ReadResponse response) {
                         if (response.isSuccess()) {
@@ -132,7 +132,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                 });
 
 
-                    server.send(registration, new ReadRequest(3), 1000, new ResponseCallback<ReadResponse>() {
+                    server.send(registration, new ReadRequest(3), 9000, new ResponseCallback<ReadResponse>() {
                         @Override
                         public void onResponse(ReadResponse response) {
                             LwM2mObject obj = (LwM2mObject) response.getContent();
@@ -218,7 +218,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
 
                         ObserveRequest request = new ObserveRequest(3303, 0, 5700);
 
-                        server.send(registration, request, 5000, new ResponseCallback<ObserveResponse>() {
+                        server.send(registration, request, 9000, new ResponseCallback<ObserveResponse>() {
                             @Override
                             public void onResponse(ObserveResponse response) {
                                     publisher.publishEvent(new UpdateEvent(this, response.getObservation(),registration,response));
