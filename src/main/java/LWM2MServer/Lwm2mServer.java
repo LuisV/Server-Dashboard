@@ -84,6 +84,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
             if(registration==null){
                 return;
             }
+        System.out.println("\n\n\n"+registration.getAddress()+"\n\n");
           ClientData result= new ClientData(null);
                 server.send(registration, new ReadRequest(6), 1000, new ResponseCallback<ReadResponse>() {
                     @Override
@@ -192,7 +193,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
 
                     //System.out.println(new String(serializer.bSerialize(model.getObjectModels())));
                     publisher.publishEvent(new ConnectionEvent(Lwm2mServer.class, "Register", new String(serializer.bSerialize(model.getObjectModels())), registration, model));
-                        System.out.println("\n\n IN HERE \n\n");
+
                         ObserveRequest request = new ObserveRequest(3303, 0, 5700);
 
                         server.send(registration, request, 5000, new ResponseCallback<ObserveResponse>() {
