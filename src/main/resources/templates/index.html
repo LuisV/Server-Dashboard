@@ -61,8 +61,11 @@
         /*]]>*/
     </script>
     Current location:
-
+    IP: <<strong id="ip" th:utext="${links.get(current[0]).getIp() +'%'}">...</strong></span>
+    Hostname: <strong id="hostname" th:utext="${links.get(current[0]).getHostname() +'%'}">...</strong></span>
+    <hr>
     <strong id="latlon"><span th:utext="${links.get(current[0]).getLat()}">...</span> <span th:utext="${links.get(current[0]).getLon()}">...</span> </strong>
+    <hr>
     <div>
         <span> Battery: <strong id="batteryLevel" th:utext="${links.get(current[0]).getBatteryLevel() +'%'}">...</strong></span>
         <span>Status Code:  <strong id = "batteryStatus" th:utext="${links.get(current[0]).getBatteryStatus()}">...</strong></span>
