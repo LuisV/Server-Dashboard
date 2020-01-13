@@ -4,6 +4,7 @@ import Objects.ObjectModelSerDes;
 import Objects.ReadEvent;
 import Objects.UpdateEvent;
 import Webscket.WebSocket;
+import com.maxmind.geoip2.record.City;
 import org.eclipse.californium.core.network.EndpointContextMatcherFactory.MatcherMode;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 
@@ -25,6 +26,7 @@ import org.eclipse.leshan.server.registration.Registration;
 import org.eclipse.leshan.server.registration.RegistrationListener;
 import org.eclipse.leshan.server.registration.RegistrationService;
 import org.eclipse.leshan.server.registration.RegistrationUpdate;
+import org.eclipse.leshan.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -33,6 +35,7 @@ import org.springframework.stereotype.*;
 import org.springframework.context.*;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -41,6 +44,7 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.leshan.server.model.VersionedModelProvider;
 
@@ -92,22 +96,15 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
             if(registration==null){
                 return;
             }
-        System.out.println(System.getenv("APIKEY"));
-        HttpClient client = HttpClient.newHttpClient();
-        try {
-            HttpRequest request = HttpRequest.newBuilder().uri(new URI("http://api.ipinfodb.com/v3/ip-city/?key=594300d16f6816d07e7de144a366caf0d64276db7ece09e3c72e12f785f269e5&ip="+ registration.getAddress().getHostAddress())).build();
-            HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-            System.out.println(response.body());
-        } catch (URISyntaxException | InterruptedException | IOException e) {
-            e.printStackTrace();
-        }
+
+
 
 
 
         System.out.println("\n\n\n"+registration.getAddress().getHostAddress()+"\n\n");
           ClientData result= new ClientData(null);
-          result.setIp(registration.getAddress().getHostAddress());
-          result.setHostname(registration.getAddress().getHostName());
+//          result.setIp(registration.getAddress().getHostAddress());
+//          result.setHostname(registration.getAddress().getHostName());
                 server.send(registration, new ReadRequest(6), 9000, new ResponseCallback<ReadResponse>() {
                     @Override
                     public void onResponse(ReadResponse response) {
@@ -156,6 +153,19 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                     });
 
                 }
+    public static CompletableFuture<String> getLocation(String ip){
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest request = null;
+        try {
+            request = HttpRequest.newBuilder().uri(new URI("http://api.ipinfodb.com/v3/ip-city/?key=594300d16f6816d07e7de144a366caf0d64276db7ece09e3c72e12f785f269e5&ip="+ ip)).build();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+        return client.sendAsync(request, BodyHandlers.ofString()).thenApply(HttpResponse::body);
+
+    }
         public Lwm2mServer() {
             List<ObjectModel> models = ObjectLoader.loadDefault();
 
@@ -212,7 +222,13 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                     System.out.println("new device: " + registration.getEndpoint());
                     LwM2mModel model = modelProvider.getObjectModel(registration);
 
-
+                    //String fullpath = StringUtils.removeEnd("/", "/") + "/" + StringUtils.removeStart("GeoLite2- City.mmdb", "/");
+                    InputStream input = ObjectLoader.class.getResourceAsStream("/db/GeoLite2-City.mmdb");
+                    if ( input== null){
+                        System.out.println("\n\nDIDNT WORK\n\n");
+                    } else {
+                        System.out.println("\n\n WORKKKK\n\n");
+                    }
                     //System.out.println(new String(serializer.bSerialize(model.getObjectModels())));
                     publisher.publishEvent(new ConnectionEvent(Lwm2mServer.class, "Register", new String(serializer.bSerialize(model.getObjectModels())), registration, model));
 

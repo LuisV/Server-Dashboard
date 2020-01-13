@@ -1,21 +1,35 @@
 package com.Luis.Server.Dashboard;
 
 import LWM2MServer.ClientData;
+import LWM2MServer.Lwm2mServer;
 import Objects.ConnectionEvent;
 import Objects.UpdateEvent;
 import Objects.ReadEvent;
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
+import com.maxmind.geoip2.model.CityResponse;
+import com.maxmind.geoip2.record.City;
 import org.eclipse.leshan.core.model.LwM2mModel;
+import org.eclipse.leshan.core.model.ObjectLoader;
 import org.eclipse.leshan.core.node.LwM2mObjectInstance;
 import org.eclipse.leshan.core.node.LwM2mResource;
 import org.eclipse.leshan.core.node.LwM2mSingleResource;
+import org.eclipse.leshan.util.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,6 +44,8 @@ public class HomeController implements ApplicationListener<ApplicationEvent>  {
     @RequestMapping("/")
     public String viewHome(Model model) {
 
+
+
         // Thymeleaf mode attribute
         model.addAttribute("links", events);
 
@@ -43,6 +59,26 @@ public class HomeController implements ApplicationListener<ApplicationEvent>  {
         if (event instanceof ConnectionEvent) {
             // New Client Connection
             events.put(((ConnectionEvent) event).getRegistration().getEndpoint(), new ClientData ((ConnectionEvent) event));
+            InputStream database = ObjectLoader.class.getResourceAsStream("/db/GeoLite2-City.mmdb");
+            if ( database== null){
+                System.out.println("\n\nDIDNT WORK\n\n");
+            } else {
+                System.out.println("\n\nWORKKKK");
+            }
+            try {
+
+                String addr = "162.246.76.253";// ((ConnectionEvent) event).getRegistration().getAddress().getHostAddress()
+                DatabaseReader reader = new DatabaseReader.Builder(database).build();
+                InetAddress ip = InetAddress.getByName(addr);
+                CityResponse city = reader.city(ip);
+                events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setIp(((ConnectionEvent) event).getRegistration().getAddress().getHostAddress().toString());
+                events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setLat(city.getLocation().getLatitude());
+                events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setLat(city.getLocation().getLongitude());
+                events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setHostname(city.getCity().getName());
+            } catch (IOException | GeoIp2Exception e) {
+                e.printStackTrace();
+            }
+
         }
         else if (event instanceof UpdateEvent) {
 

@@ -60,11 +60,13 @@
         var tempArr = /*[[${links.get(current[0]).getTemp()}]]*/ [];
         /*]]>*/
     </script>
-    Current location:
-    IP: <<strong id="ip" th:utext="${links.get(current[0]).getIp() +'%'}">...</strong></span>
-    Hostname: <strong id="hostname" th:utext="${links.get(current[0]).getHostname() +'%'}">...</strong></span>
-    <hr>
-    <strong id="latlon"><span th:utext="${links.get(current[0]).getLat()}">...</span> <span th:utext="${links.get(current[0]).getLon()}">...</span> </strong>
+    Current location:     <strong id="latlon"><span th:utext="${links.get(current[0]).getLat()}">...</span> <span th:utext="${links.get(current[0]).getLon()}">...</span> </strong>
+
+    <br>
+    <br>
+    IP: <strong id="ip" th:utext="${links.get(current[0]).getIp()}">...</strong>
+    Location: <strong id="hostname" th:utext="${links.get(current[0]).getHostname()}">...</strong>
+
     <hr>
     <div>
         <span> Battery: <strong id="batteryLevel" th:utext="${links.get(current[0]).getBatteryLevel() +'%'}">...</strong></span>
