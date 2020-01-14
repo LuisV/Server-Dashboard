@@ -70,7 +70,7 @@
     <hr>
     <div>
         <span> Battery: <strong id="batteryLevel" th:utext="${links.get(current[0]).getBatteryLevel() +'%'}">...</strong></span>
-        <span>Status Code:  <strong id = "batteryStatus" th:utext="${links.get(current[0]).getBatteryStatus()}">...</strong></span>
+        <span>Device status:  <strong id = "batteryStatus" th:utext="${links.get(current[0]).getBatteryStatus()}">...</strong></span>
 
     </div>
     <!--<canvas id="myChart" width="100" height="100"></canvas>-->
@@ -84,16 +84,16 @@
 
     <h4 >Supported Resources</h4>
 
-    <hr>
-
     <table border="1">
     <tr>
         <th>ID</th>
         <th>Name</th>
+        <th>Description</th>
     </tr>
     <tr th:each ="model : ${links.get(current[0]).getConnection().getModel().getObjectModels()}">
         <td th:utext="${model.id}">...</td>
         <td th:utext="${model.name}">...</td>
+        <td th:utext="${model.description}">...</td>
 
     </tr>
 </table>
