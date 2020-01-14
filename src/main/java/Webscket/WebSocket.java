@@ -71,8 +71,8 @@ public class WebSocket extends TextWebSocketHandler implements ApplicationListen
                 ClientData client = HomeController.events.get(j.getString("endpoint",""));
                 if(client != null){
                     result.add("device", j.getString("endpoint","") );
-                    result.add("lat",client.getLat());
-                    result.add("lon", client.getLon());
+                    //result.add("lat",client.getLat());
+                    //result.add("lon", client.getLon());
                     result.add("batteryLevel", client.getBatteryLevel());
                     result.add("batteryStatus", client.getBatteryStatus());
                     sendMessageToAll(result.toString());
