@@ -18,11 +18,11 @@
     /*]]>*/
 </script>
 
-<div id="menu" style="width:25%">
+<div id="menu" style="width:200px">
 
      <br />
 
-    <h2>Currently connected devices:</h2>
+    <h2>Connected devices:</h2>
     <div class="animatedParent" data-sequence='200'  >
         <div class='animated fadeInDownShort' th:data-id="${counter.count}" th:each ="conn, counter : ${links}">
 
@@ -32,13 +32,18 @@
 </div>
 
 
-<div id="wrapper" style="margin-left:27%; width: 460px">
+<div id="wrapper" style="margin-left:240px; margin-right:60px;">
     <span style=" position: absolute; top: 10px; right: 10px" th:if="${param.endpoint != null}">
          <button id="my-btn" class="icon-btn">
             <i class="fa fa-refresh" style="font-size:24px"></i>
              </button>
     </span>
+
     <h1> Device Info
+        <span th:if="${param.endpoint != null}">
+        for
+        <span th:utext="${param.endpoint}">...</span>
+        </span>
 
     </h1>
 
@@ -60,17 +65,16 @@
         var tempArr = /*[[${links.get(current[0]).getTemp()}]]*/ [];
         /*]]>*/
     </script>
-    Current location:     <strong id="latlon"><span th:utext="${links.get(current[0]).getLat()}">...</span> <span th:utext="${links.get(current[0]).getLon()}">...</span> </strong>
 
-    <br>
-    <br>
-    IP: <strong id="ip" th:utext="${links.get(current[0]).getIp()}">...</strong>
-    Location: <strong id="hostname" th:utext="${links.get(current[0]).getHostname()}">...</strong>
+
+    IP: <strong style= "padding-right:20px" id="ip" th:utext="${links.get(current[0]).getIp()}">...</strong>
+    Location: <strong style= "padding-right:20px" id="hostname" th:utext="${links.get(current[0]).getHostname()}">...</strong>
+    Coordinates: <strong id="latlon"><span th:utext="${links.get(current[0]).getLat()}">...</span> <span th:utext="${links.get(current[0]).getLon()}">...</span> </strong>
 
     <hr>
     <div>
-        <span> Battery: <strong id="batteryLevel" th:utext="${links.get(current[0]).getBatteryLevel() +'%'}">...</strong></span>
-        <span>Device status:  <strong id = "batteryStatus" th:utext="${links.get(current[0]).getBatteryStatus()}">...</strong></span>
+        <span> Battery: <strong style= "padding-right:20px" id="batteryLevel" th:utext="${links.get(current[0]).getBatteryLevel() +'%'}">...</strong></span>
+        <span> Status:  <strong id = "batteryStatus" th:utext="${links.get(current[0]).getBatteryStatus()}">...</strong></span>
 
     </div>
     <!--<canvas id="myChart" width="100" height="100"></canvas>-->
