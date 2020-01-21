@@ -1,39 +1,26 @@
 package com.Luis.Server.Dashboard;
 
 import LWM2MServer.ClientData;
-import LWM2MServer.Lwm2mServer;
 import Objects.ConnectionEvent;
 import Objects.UpdateEvent;
 import Objects.ReadEvent;
 import com.maxmind.geoip2.DatabaseReader;
 import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
-import com.maxmind.geoip2.record.City;
-import org.eclipse.leshan.core.model.LwM2mModel;
 import org.eclipse.leshan.core.model.ObjectLoader;
 import org.eclipse.leshan.core.node.LwM2mObjectInstance;
-import org.eclipse.leshan.core.node.LwM2mResource;
-import org.eclipse.leshan.core.node.LwM2mSingleResource;
-import org.eclipse.leshan.util.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.eclipse.leshan.server.model.LwM2mModelProvider;
 
 @Controller
 public class HomeController implements ApplicationListener<ApplicationEvent>  {
@@ -66,17 +53,20 @@ public class HomeController implements ApplicationListener<ApplicationEvent>  {
                 System.out.println("\n\nWORKKKK");
             }
             try {
+                events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setIp(((ConnectionEvent) event).getRegistration().getAddress().getHostAddress());
 
-                String addr = "162.246.76.253";// ((ConnectionEvent) event).getRegistration().getAddress().getHostAddress()
+                String addr = ((ConnectionEvent) event).getRegistration().getAddress().getHostAddress();
                 DatabaseReader reader = new DatabaseReader.Builder(database).build();
                 InetAddress ip = InetAddress.getByName(addr);
                 CityResponse city = reader.city(ip);
-                events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setIp(((ConnectionEvent) event).getRegistration().getAddress().getHostAddress().toString());
                 events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setLat(city.getLocation().getLatitude());
-                events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setLat(city.getLocation().getLongitude());
+                events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setLon(city.getLocation().getLongitude());
                 events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setHostname(city.getCity().getName());
             } catch (IOException | GeoIp2Exception e) {
-                e.printStackTrace();
+                events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setLat(0.000);
+                events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setLon(0.000);
+                events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setHostname("Unknown");
+
             }
 
         }
@@ -92,14 +82,14 @@ public class HomeController implements ApplicationListener<ApplicationEvent>  {
             if (matcher.find())
             {
 
-               Double num = Double.parseDouble(matcher.group(1));
+               double num = Double.parseDouble(matcher.group(1));
                 // Add to Temperature array in the events container
                events.get(((UpdateEvent) event).getRegistration().getEndpoint()).addToTempArray(num);
             }
         }
         else if (event instanceof ReadEvent) {
            // New response to a read request
-            ArrayList<LwM2mObjectInstance> te = new ArrayList<LwM2mObjectInstance>(((ReadEvent) event).getValues());
+            ArrayList<LwM2mObjectInstance> te = new ArrayList<>(((ReadEvent) event).getValues());
 
             // There must be a better way to differentiate between requests
             // I simply used the size of the data

@@ -3,12 +3,10 @@ import Objects.ConnectionEvent;
 import Objects.ObjectModelSerDes;
 import Objects.ReadEvent;
 import Objects.UpdateEvent;
-import Webscket.WebSocket;
-import com.maxmind.geoip2.record.City;
+
 import org.eclipse.californium.core.network.EndpointContextMatcherFactory.MatcherMode;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 
-import org.eclipse.leshan.Link;
 import org.eclipse.leshan.core.model.LwM2mModel;
 import org.eclipse.leshan.core.model.ObjectLoader;
 import org.eclipse.leshan.core.model.ObjectModel;
@@ -26,30 +24,14 @@ import org.eclipse.leshan.server.registration.Registration;
 import org.eclipse.leshan.server.registration.RegistrationListener;
 import org.eclipse.leshan.server.registration.RegistrationService;
 import org.eclipse.leshan.server.registration.RegistrationUpdate;
-import org.eclipse.leshan.server.security.EditableSecurityStore;
-import org.eclipse.leshan.server.security.FileSecurityStore;
-import org.eclipse.leshan.server.security.NonUniqueSecurityInfoException;
-import org.eclipse.leshan.server.security.SecurityInfo;
-import org.eclipse.leshan.util.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.eclipse.leshan.server.security.*;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.*;
-import org.springframework.context.*;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
 import org.eclipse.leshan.server.model.VersionedModelProvider;
 
 import javax.annotation.PreDestroy;
@@ -106,70 +88,37 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
 
 
         System.out.println("\n\n\n"+registration.getAddress().getHostAddress()+"\n\n");
-          ClientData result= new ClientData(null);
-//          result.setIp(registration.getAddress().getHostAddress());
-//          result.setHostname(registration.getAddress().getHostName());
-                server.send(registration, new ReadRequest(6), 9000, new ResponseCallback<ReadResponse>() {
-                    @Override
-                    public void onResponse(ReadResponse response) {
-                        if (response.isSuccess()) {
-                            LwM2mObject obj = (LwM2mObject) response.getContent();
-                            System.out.println((obj.getInstances().values()));
-                            publisher.publishEvent(new ReadEvent(Lwm2mServer.class, registration, response));
+                server.send(registration, new ReadRequest(6), 9000, response -> {
+                    if (response.isSuccess()) {
+                        LwM2mObject obj = (LwM2mObject) response.getContent();
+                        System.out.println((obj.getInstances().values()));
+                        publisher.publishEvent(new ReadEvent(Lwm2mServer.class, registration, response));
 
-                        } else {
-                            System.out.println("Failed to read:" + response.getCode() + " " + response.getErrorMessage());
-                        }
+                    } else {
+                        System.out.println("Failed to read:" + response.getCode() + " " + response.getErrorMessage());
                     }
-
-                    ;
-                }, new ErrorCallback() {
-
-                    @Override
-                    public void onError(Exception e) {
-                        System.out.println("Failed to read:");
-                        e.printStackTrace();
-                    }
+                }, e -> {
+                    System.out.println("Failed to read:");
+                    e.printStackTrace();
                 });
 
 
-                    server.send(registration, new ReadRequest(3), 9000, new ResponseCallback<ReadResponse>() {
-                        @Override
-                        public void onResponse(ReadResponse response) {
-                            LwM2mObject obj = (LwM2mObject) response.getContent();
+                    server.send(registration, new ReadRequest(3), 9000, response -> {
+                        LwM2mObject obj = (LwM2mObject) response.getContent();
 
-                            if (response.isSuccess()) {
-                                System.out.println((obj.getInstances().values()));
-                                publisher.publishEvent(new ReadEvent(Lwm2mServer.class, registration, response));
-                            } else {
-                                System.out.println("Failed to read:" + response.getCode() + " " + response.getErrorMessage());
-                            }
+                        if (response.isSuccess()) {
+                            System.out.println((obj.getInstances().values()));
+                            publisher.publishEvent(new ReadEvent(Lwm2mServer.class, registration, response));
+                        } else {
+                            System.out.println("Failed to read:" + response.getCode() + " " + response.getErrorMessage());
                         }
-
-                        ;
-                    }, new ErrorCallback() {
-
-                        @Override
-                        public void onError(Exception e) {
-                            System.out.println("Failed to read:");
-                            e.printStackTrace();
-                        }
+                    }, error -> {
+                        System.out.println("Failed to read:");
+                        error.printStackTrace();
                     });
 
                 }
-    public static CompletableFuture<String> getLocation(String ip){
-        HttpClient client = HttpClient.newHttpClient();
 
-        HttpRequest request = null;
-        try {
-            request = HttpRequest.newBuilder().uri(new URI("http://api.ipinfodb.com/v3/ip-city/?key=594300d16f6816d07e7de144a366caf0d64276db7ece09e3c72e12f785f269e5&ip="+ ip)).build();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-
-        return client.sendAsync(request, BodyHandlers.ofString()).thenApply(HttpResponse::body);
-
-    }
         public Lwm2mServer() {
             List<ObjectModel> models = ObjectLoader.loadDefault();
 
@@ -185,10 +134,13 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
 
             EditableSecurityStore securityStore = new FileSecurityStore();
             builder.setSecurityStore(securityStore);
-            SecurityInfo mySecureInfo = SecurityInfo.newPreSharedKeyInfo("chicken","31323334", "1234".getBytes() );
+            SecurityInfo mySecureInfo = SecurityInfo.newPreSharedKeyInfo("Chicken","Chicken", "1234".getBytes() );
+            SecurityInfo aSecureInfo = SecurityInfo.newPreSharedKeyInfo("Secure Device","Device", "1234".getBytes() );
 
             try {
                 securityStore.add(mySecureInfo);
+                securityStore.add(aSecureInfo);
+
             } catch (NonUniqueSecurityInfoException e) {
                 e.printStackTrace();
             }
@@ -225,7 +177,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
 
                 @Override
                 public void onError(Observation observation, Registration registration, Exception error) {
-                    System.out.println(error);
+                    error.printStackTrace();
                 }
             });
 
@@ -248,18 +200,14 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
 
                         ObserveRequest request = new ObserveRequest(3303, 0, 5700);
 
-                        server.send(registration, request, 9000, new ResponseCallback<ObserveResponse>() {
+                        server.send(registration, request, 9000, new ResponseCallback<>() {
                             @Override
                             public void onResponse(ObserveResponse response) {
-                                    publisher.publishEvent(new UpdateEvent(this, response.getObservation(),registration,response));
+                                publisher.publishEvent(new UpdateEvent(this, response.getObservation(), registration, response));
                             }
-                        }, new ErrorCallback() {
-
-                            @Override
-                            public void onError(Exception e) {
-                                System.out.println("Failed to read:");
-                                e.printStackTrace();
-                            }
+                        }, error -> {
+                            System.out.println("Failed to read:");
+                            error.printStackTrace();
                         });
                     getDeviceInfo(registration.getEndpoint());
                 }
@@ -281,7 +229,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
 
         }
         @PreDestroy
-        public void destroy() throws Exception {
+        public void destroy() {
             server.destroy();
         }
 }

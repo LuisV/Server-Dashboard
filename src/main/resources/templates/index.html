@@ -26,7 +26,13 @@
     <div class="animatedParent" data-sequence='200'  >
         <div class='animated fadeInDownShort' th:data-id="${counter.count}" th:each ="conn, counter : ${links}">
 
-        <h3 ><a th:href="@{ .(endpoint=${conn.value.getConnection().getRegistration().getEndpoint()})}" th:utext="${conn.value.getConnection().getRegistration().getEndpoint()}">...</a></h3>
+        <h3 ><a th:href="@{ .(endpoint=${conn.value.getConnection().getRegistration().getEndpoint()})}" th:utext="${conn.value.getConnection().getRegistration().getEndpoint()}"></a>  <span th:if="${conn.value.getConnection().getRegistration().getIdentity().isSecure()}">
+            <div class ="tooltip">
+                <i class='fa fa-lock' style="font-size:18px; vertical-align: middle; margin-left: 10px"></i>
+            <span class="tooltiptext">Using secure connection</span>
+            </div>
+ </span></h3>
+
     </div>
     </div>
 </div>
