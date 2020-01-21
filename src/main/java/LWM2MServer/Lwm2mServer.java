@@ -18,14 +18,18 @@ import org.eclipse.leshan.core.observation.Observation;
 import org.eclipse.leshan.core.request.ObserveRequest;
 import org.eclipse.leshan.core.request.ReadRequest;
 import org.eclipse.leshan.core.response.*;
+import org.eclipse.leshan.server.californium.LeshanServer;
 import org.eclipse.leshan.server.californium.LeshanServerBuilder;
-import org.eclipse.leshan.server.californium.impl.LeshanServer;
 import org.eclipse.leshan.server.model.LwM2mModelProvider;
 import org.eclipse.leshan.server.observation.ObservationListener;
 import org.eclipse.leshan.server.registration.Registration;
 import org.eclipse.leshan.server.registration.RegistrationListener;
 import org.eclipse.leshan.server.registration.RegistrationService;
 import org.eclipse.leshan.server.registration.RegistrationUpdate;
+import org.eclipse.leshan.server.security.EditableSecurityStore;
+import org.eclipse.leshan.server.security.FileSecurityStore;
+import org.eclipse.leshan.server.security.NonUniqueSecurityInfoException;
+import org.eclipse.leshan.server.security.SecurityInfo;
 import org.eclipse.leshan.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -179,7 +183,17 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
             builder.setCoapConfig(coapConfig);
             builder.setEncoder(new DefaultLwM2mNodeEncoder(new MagicLwM2mValueConverter()));
 
+            EditableSecurityStore securityStore = new FileSecurityStore();
+            builder.setSecurityStore(securityStore);
+            SecurityInfo mySecureInfo = SecurityInfo.newPreSharedKeyInfo("chicken","31323334", "1234".getBytes() );
+
+            try {
+                securityStore.add(mySecureInfo);
+            } catch (NonUniqueSecurityInfoException e) {
+                e.printStackTrace();
+            }
             serializer = new ObjectModelSerDes();
+
 
              server = builder.build();
 
