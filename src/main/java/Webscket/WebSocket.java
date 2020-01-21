@@ -74,6 +74,8 @@ public class WebSocket extends TextWebSocketHandler implements ApplicationListen
                     //result.add("lat",client.getLat());
                     //result.add("lon", client.getLon());
                     result.add("batteryLevel", client.getBatteryLevel());
+                    result.add("lat",client.getLat());
+                    result.add("lon", client.getLon());
                     result.add("batteryStatus", client.getBatteryStatus());
                     sendMessageToAll(result.toString());
                 }

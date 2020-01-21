@@ -63,6 +63,7 @@ public class HomeController implements ApplicationListener<ApplicationEvent>  {
                 events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setLon(city.getLocation().getLongitude());
                 events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setHostname(city.getCity().getName());
             } catch (IOException | GeoIp2Exception e) {
+                e.printStackTrace();
                 events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setLat(0.000);
                 events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setLon(0.000);
                 events.get(((ConnectionEvent) event).getRegistration().getEndpoint()).setHostname("Unknown");
