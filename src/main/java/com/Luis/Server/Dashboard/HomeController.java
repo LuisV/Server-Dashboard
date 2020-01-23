@@ -95,21 +95,33 @@ public class HomeController implements ApplicationListener<ApplicationEvent>  {
             // There must be a better way to differentiate between requests
             // I simply used the size of the data
             if (te.get(0).getResources().size() == 16) {
-                events.get(((ReadEvent) event).getRegistration().getEndpoint()).setBatteryLevel ((Long) te.get(0).getResources().get(9).getValue());
-                String batteryStatus="";
-               switch(Math.toIntExact((long) te.get(0).getResources().get(20).getValue()))
-               {
-                   case 0: {batteryStatus = "Normal"; break;}
-                   case 1: {batteryStatus ="Charging"; break;}
-                   case 2: {batteryStatus ="Charge Complete"; break;}
-                   case 4: {batteryStatus = "Low Battery!"; break;}
-               }
+                events.get(((ReadEvent) event).getRegistration().getEndpoint()).setBatteryLevel((Long) te.get(0).getResources().get(9).getValue());
+                String batteryStatus = "";
+                switch (Math.toIntExact((long) te.get(0).getResources().get(20).getValue())) {
+                    case 0: {
+                        batteryStatus = "Normal";
+                        break;
+                    }
+                    case 1: {
+                        batteryStatus = "Charging";
+                        break;
+                    }
+                    case 2: {
+                        batteryStatus = "Charge Complete";
+                        break;
+                    }
+                    case 4: {
+                        batteryStatus = "Low Battery!";
+                        break;
+                    }
+                }
 
-                events.get(((ReadEvent) event).getRegistration().getEndpoint()).setBatteryStatus (batteryStatus);
-            } else {
-                events.get(((ReadEvent) event).getRegistration().getEndpoint()).setLat ((Double) te.get(0).getResources().get(0).getValue());
-                events.get(((ReadEvent) event).getRegistration().getEndpoint()).setLon ( (Double) te.get(0).getResources().get(1).getValue());
+                events.get(((ReadEvent) event).getRegistration().getEndpoint()).setBatteryStatus(batteryStatus);
             }
+//            } else {
+//                events.get(((ReadEvent) event).getRegistration().getEndpoint()).setLat ((Double) te.get(0).getResources().get(0).getValue());
+//                events.get(((ReadEvent) event).getRegistration().getEndpoint()).setLon ( (Double) te.get(0).getResources().get(1).getValue());
+//            }
         }
 
     }
