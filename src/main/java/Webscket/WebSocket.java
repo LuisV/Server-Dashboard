@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,7 +30,7 @@ import java.util.regex.Pattern;
 
 
 @Component
-public class WebSocket extends TextWebSocketHandler implements ApplicationListener<ApplicationEvent> {
+public class WebSocket extends TextWebSocketHandler {
 
 
     private Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
@@ -94,35 +95,28 @@ public class WebSocket extends TextWebSocketHandler implements ApplicationListen
         });
     }
 
-    @Override
-    public void onApplicationEvent(ApplicationEvent event) {
-        System.out.println(event);
-        if (event instanceof ConnectionEvent) {
+    @EventListener
+    public void handleConnectionEvent(ConnectionEvent event){
+        JsonObject p = new JsonObject();
+        p.add("newDevice", event.getRegistration().getEndpoint());
+        p.add("device", event.getRegistration().getEndpoint() );
+        this.sendMessageToAll(p.toString());
+    }
 
-            JsonObject p = new JsonObject();
-            p.add("newDevice", ((ConnectionEvent) event).getRegistration().getEndpoint());
-            p.add("device", ((ConnectionEvent) event).getRegistration().getEndpoint() );
-            this.sendMessageToAll(p.toString());
+    @EventListener
+    public void handleUpdateEvent(UpdateEvent event){
+        String data= event.getResponse().getContent().toString();
+
+        Pattern pattern = Pattern.compile("value=(.*?),");
+        Matcher matcher = pattern.matcher(data);
+        double num = 0.0;
+        if (matcher.find())
+        {
+            num = Double.parseDouble(matcher.group(1));
         }
-        else if (event instanceof UpdateEvent) {
-           String data= (((UpdateEvent) event).getResponse().getContent().toString());
-
-            Pattern pattern = Pattern.compile("value=(.*?),");
-            Matcher matcher = pattern.matcher(data);
-            Double chicken = 0.0;
-            if (matcher.find())
-            {
-                chicken = Double.parseDouble(matcher.group(1));
-
-            }
-            JsonObject j = new JsonObject();
-            j.add("tempUpdate", chicken);
-            j.add("device", ((UpdateEvent) event).getRegistration().getEndpoint() );
-            this.sendMessageToAll(j.toString());
-
-
-        }
-
-
+        JsonObject j = new JsonObject();
+        j.add("tempUpdate", num);
+        j.add("device", ((UpdateEvent) event).getRegistration().getEndpoint() );
+        this.sendMessageToAll(j.toString());
     }
 }

@@ -83,11 +83,6 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                 return;
             }
 
-
-
-
-
-        System.out.println("\n\n\n"+registration.getAddress().getHostAddress()+"\n\n");
                 server.send(registration, new ReadRequest(6), 9000, response -> {
                     if (response.isSuccess()) {
                         LwM2mObject obj = (LwM2mObject) response.getContent();
@@ -121,8 +116,6 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
 
         public Lwm2mServer() {
             List<ObjectModel> models = ObjectLoader.loadDefault();
-
-
             models.addAll(ObjectLoader.loadDdfResources("/models/", modelPaths));
             LwM2mModelProvider pro = new VersionedModelProvider(models);
             LeshanServerBuilder builder = new LeshanServerBuilder();
@@ -134,6 +127,8 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
 
             EditableSecurityStore securityStore = new FileSecurityStore();
             builder.setSecurityStore(securityStore);
+
+            // Devices must match endpoint and key to be 'secure'
             SecurityInfo mySecureInfo = SecurityInfo.newPreSharedKeyInfo("Chicken","Chicken", "1234".getBytes() );
             SecurityInfo aSecureInfo = SecurityInfo.newPreSharedKeyInfo("Secure Device","Device", "1234".getBytes() );
 
@@ -152,13 +147,12 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
             modelProvider = server.getModelProvider();
             ser = server.getRegistrationService();
 
-
             // Registration Listener for new devices
             // Observation listener
             server.getObservationService().addListener(new ObservationListener() {
                 @Override
                 public void newObservation(Observation observation, Registration registration) {
-                    System.out.println("NEWWW");
+                    System.out.println("NEW");
                 }
 
                 @Override
@@ -170,8 +164,6 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                 public void onResponse(Observation observation, Registration registration, ObserveResponse response) {
                     System.out.println(response.getContent().getId());
                     System.out.println(response.getContent());
-                    // TODO: Need to finish UpdateEvent in the Objects folder first
-                    //publisher.publishEvent(new ConnectionEvent(this, "tempUpdate", new String(serializer.bSerialize(model.getObjectModels())), registration, model));
                     publisher.publishEvent(new UpdateEvent(this, observation,registration,response));
                 }
 
@@ -188,14 +180,8 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                     System.out.println("new device: " + registration.getEndpoint());
                     LwM2mModel model = modelProvider.getObjectModel(registration);
 
-                    //String fullpath = StringUtils.removeEnd("/", "/") + "/" + StringUtils.removeStart("GeoLite2- City.mmdb", "/");
                     InputStream input = ObjectLoader.class.getResourceAsStream("/db/GeoLite2-City.mmdb");
-                    if ( input== null){
-                        System.out.println("\n\nDIDNT WORK\n\n");
-                    } else {
-                        System.out.println("\n\n WORKKKK\n\n");
-                    }
-                    //System.out.println(new String(serializer.bSerialize(model.getObjectModels())));
+
                     publisher.publishEvent(new ConnectionEvent(Lwm2mServer.class, "Register", new String(serializer.bSerialize(model.getObjectModels())), registration, model));
 
                         ObserveRequest request = new ObserveRequest(3303, 0, 5700);
@@ -222,11 +208,7 @@ public class Lwm2mServer implements ApplicationEventPublisherAware{
                     System.out.println("device left: " + registration.getEndpoint());
                 }
             });
-
-
-
             server.start();
-
         }
         @PreDestroy
         public void destroy() {

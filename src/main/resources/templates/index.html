@@ -13,9 +13,11 @@
 <script th:inline="javascript">
     var tempArr=[];
     /*<![CDATA[*/
-
+    var webscketurl= /*[[${@environment.getProperty('websocket.url')}]]*/ " ";
     var currentEndpoint = /*[[${current}]]*/ [];
     /*]]>*/
+
+
 </script>
 
 <div id="menu" style="width:200px">
@@ -66,8 +68,6 @@
 
     <script th:inline="javascript">
         /*<![CDATA[*/
-
-
         var tempArr = /*[[${links.get(current[0]).getTemp()}]]*/ [];
         /*]]>*/
     </script>
