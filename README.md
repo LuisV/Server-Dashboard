@@ -1,7 +1,6 @@
 # Server-Dashboard
 Dashboard for LWM2M service
 - To be used with https://github.com/LuisV/lwm2m-Client
-- View demo here: `Must be on guest wifi to access`
 
 ## Dashboard for device information over LWM2M protocol
 Springboot Application, build with Maven and deploy to a Tomcat Server
