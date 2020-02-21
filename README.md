@@ -1,7 +1,7 @@
 # Server-Dashboard
 Dashboard for LWM2M service
 - To be used with https://github.com/LuisV/lwm2m-Client
-- View demo here: http://ec2-18-219-244-119.us-east-2.compute.amazonaws.com:8080 `Must be on guest wifi to access`
+- View demo here: `Must be on guest wifi to access`
 
 ## Dashboard for device information over LWM2M protocol
 Springboot Application, build with Maven and deploy to a Tomcat Server
